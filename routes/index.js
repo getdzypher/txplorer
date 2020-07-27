@@ -138,6 +138,7 @@ function route_get_address(res, hash, count) {
 }
 
 /* GET home page. */
+
 router.get('/', function(req, res) {
   route_get_index(res, null);
 });
@@ -305,7 +306,7 @@ router.get('/movement', function(req, res) {
 });
 
 router.get('/network', function(req, res) {
-  res.render('network', {active: 'network'});
+  res.render('network', {active: 'network'}); 
 });
 
 router.get('/reward', function(req, res){
@@ -421,16 +422,20 @@ router.get('/ext/summary', function(req, res) {
 
                   var blocksPerDay = (60*60*24)/settings.mnroi.block_time_sec + 28; //plus super block rewards
                   var totalMnRewardsDay = settings.mnroi.block_reward_mn * blocksPerDay;
-                  var mnRewardsPerDay = masternodecount == 0 ? totalMnRewardsDay / 1 : totalMnRewardsDay / masternodecount;
+                  var mnRewardsPerDay = masternodeonlinecount == 0 ? totalMnRewardsDay / 1 : totalMnRewardsDay / masternodeonlinecount;
                   var mnRewardsPerYear = mnRewardsPerDay * 365;
                   var mnroi = formatNum(mnRewardsPerYear * 100 / settings.mnroi.masternode_required, { maxFraction: 2});
+				  				  
+                  var dailyCoin = formatNum(mnRewardsPerDay, { maxFraction: 2});
+                  var weeklyCoin = formatNum(mnRewardsPerDay * 7, { maxFraction: 2});
+                  var monthlyCoin = formatNum(mnRewardsPerDay * (365/12), { maxFraction: 2});				  
 
                   res.send({ data: [{
-                    difficulty: difficulty,
+                    difficulty: formatNum(difficulty, { maxFraction: 6}),
                     difficultyHybrid: difficultyHybrid,
                     masternodeCount: masternodecount,
                     masternodeOnlineCount: masternodeonlinecount,
-                    supply: formatNum(stats.supply, { maxFraction: 4 }),
+                    supply: formatNum(stats.supply, { maxFraction: 0 }),
                     hashrate: hashrate,
                     lastPriceBtc: formatNum(stats.last_price, { maxFraction: 8 }),
                     lastPriceUsd: formatCurrency(cmc.price_usd, { maxFraction: 6 }),
@@ -441,6 +446,9 @@ router.get('/ext/summary', function(req, res) {
                     cmc: cmc,
                     collateral: settings.mnroi.masternode_required,
                     mnroi: mnroi,
+                    dailyCoin: dailyCoin,
+                    weeklyCoin: weeklyCoin,
+                    monthlyCoin: monthlyCoin,
                   }]});
                 });
               });
@@ -465,7 +473,7 @@ router.get('/ext/masternodes', function(req, res) {
           status: mn.status,
           lastseen: mn.lastseen,
           lastpaid: mn.lastpaid,
-//          ip: ""
+          ip: mn.ip,
         };
         mnList.push(mnItem);
 
@@ -500,12 +508,12 @@ router.get('/ext/masternodes', function(req, res) {
         if (settings.masternodes.list_format.lastpaid > -1)
           mnItem.lastpaid = mnData[settings.masternodes.list_format.lastpaid - 1];
 
-/*        // IP
+        // IP
         if (settings.masternodes.list_format.ip === 0)
           mnItem.ip = key.trim().replace(':'+settings.masternodes.default_port, '');
         else if (settings.masternodes.list_format.ip > -1)
           mnItem.ip = mnData[settings.masternodes.list_format.ip - 1].trim().replace(':'+settings.masternodes.default_port, '');
-*/
+
         mnList.push(mnItem);
       }
     }
